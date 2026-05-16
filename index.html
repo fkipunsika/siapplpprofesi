@@ -438,12 +438,11 @@
     <!-- Custom Application Logic -->
     <script>
     // === KONFIGURASI GITHUB PAGES ===
-        // Nanti ganti teks di bawah dengan URL Web App Apps Script Anda!
-        var WEB_APP_URL = "https://script.google.com/a/macros/fkip.unsika.ac.id/s/AKfycbzz9bM4C_GQPY1PAYne173Vvmwm6cCS4L5ggER-rqpsqRCLYccf7HrWV4h7SYFwk-oN/exec";
-
-        // Mematikan mode simulasi otomatis agar terhubung ke database asli
-        window.google = { script: { run: {} } };
-        // ================================
+    const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzz9bM4C_GQPY1PAYne173Vvmwm6cCS4L5ggER-rqpsqRCLYccf7HrWV4h7SYFwk-oN/exec";
+    
+    // Matikan simulasi, TAPI jangan buat objek palsu script.run
+    window.google = window.google || {}; 
+    // ================================
 
     (function() {
         'use strict';
@@ -483,18 +482,19 @@
         function gasRun(funcName) {
             var args = Array.prototype.slice.call(arguments, 1);
             return new Promise(function(resolve, reject) {
-                if (window.google && google.script && google.script.run) {
-                    // Mode native Apps Script
+                // Cek apakah benar-benar jalan di server GAS (fungsinya harus ada)
+                if (window.google && window.google.script && window.google.script.run && typeof window.google.script.run.withSuccessHandler === 'function') {
+                    // Mode Native Apps Script
                     var runner = google.script.run
                         .withSuccessHandler(function(res) { resolve(res); })
                         .withFailureHandler(reject);
                     runner[funcName].apply(runner, args);
                 } else {
-                    // Mode Github Pages (Fetch API)
+                    // Mode Github Pages (Fetch API yang diperkuat)
                     fetch(GAS_WEBAPP_URL, {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'text/plain;charset=utf-8'
+                            'Content-Type': 'text/plain;charset=utf-8' // Tembus proteksi CORS
                         },
                         body: JSON.stringify({ func: funcName, args: args }),
                         redirect: 'follow'
