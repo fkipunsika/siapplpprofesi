@@ -437,11 +437,13 @@
 
     <!-- Custom Application Logic -->
     <script>
-    // --- SETUP GITHUB PAGES ---
-    // Nanti ganti teks di bawah dengan URL WebApp GAS Anda setelah di-deploy
-    const GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbzz9bM4C_GQPY1PAYne173Vvmwm6cCS4L5ggER-rqpsqRCLYccf7HrWV4h7SYFwk-oN/exec';
-    window.google = window.google || {}; // Mematikan mode simulasi lokal
-    // --------------------------
+    // === KONFIGURASI GITHUB PAGES ===
+        // Nanti ganti teks di bawah dengan URL Web App Apps Script Anda!
+        var WEB_APP_URL = "https://script.google.com/a/macros/fkip.unsika.ac.id/s/AKfycbzz9bM4C_GQPY1PAYne173Vvmwm6cCS4L5ggER-rqpsqRCLYccf7HrWV4h7SYFwk-oN/exec";
+
+        // Mematikan mode simulasi otomatis agar terhubung ke database asli
+        window.google = { script: { run: {} } };
+        // ================================
 
     (function() {
         'use strict';
