@@ -437,13 +437,6 @@
 
     <!-- Custom Application Logic -->
     <script>
-    // === KONFIGURASI GITHUB PAGES ===
-    const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzz9bM4C_GQPY1PAYne173Vvmwm6cCS4L5ggER-rqpsqRCLYccf7HrWV4h7SYFwk-oN/exec";
-    
-    // Matikan simulasi, TAPI jangan buat objek palsu script.run
-    window.google = window.google || {}; 
-    // ================================
-
     (function() {
         'use strict';
 
@@ -479,33 +472,27 @@
             return div.innerHTML;
         }
 
+        // Setup URL WebApp untuk koneksi dari Github Pages
+        // Ganti URL di bawah dengan URL Web App Apps Script Anda!
+        const WEB_APP_URL = "https://script.google.com/a/macros/fkip.unsika.ac.id/s/AKfycbyVqflKathaDjziZrqOl2PcKmD5NU_6-D7Yf9E4Ymy2ib3HwfN_AJjrWEy6n65AdFSi/exec";
+        
+        // Trik untuk mematikan mode simulasi agar frontend memanggil data asli
+        window.google = { script: {} }; 
+
         function gasRun(funcName) {
             var args = Array.prototype.slice.call(arguments, 1);
             return new Promise(function(resolve, reject) {
-                // Cek apakah benar-benar jalan di server GAS (fungsinya harus ada)
-                if (window.google && window.google.script && window.google.script.run && typeof window.google.script.run.withSuccessHandler === 'function') {
-                    // Mode Native Apps Script
-                    var runner = google.script.run
-                        .withSuccessHandler(function(res) { resolve(res); })
-                        .withFailureHandler(reject);
-                    runner[funcName].apply(runner, args);
-                } else {
-                    // Mode Github Pages (Fetch API yang diperkuat)
-                    fetch(GAS_WEBAPP_URL, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'text/plain;charset=utf-8' // Tembus proteksi CORS
-                        },
-                        body: JSON.stringify({ func: funcName, args: args }),
-                        redirect: 'follow'
-                    })
-                    .then(function(response) { return response.json(); })
-                    .then(function(data) {
-                        if (data && data._gasError) reject(new Error(data._gasError));
-                        else resolve(data);
-                    })
-                    .catch(function(err) { reject(err); });
-                }
+                fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ func: funcName, args: args }),
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' } // text/plain menghindari blokir CORS
+                })
+                .then(function(response) { return response.json(); })
+                .then(function(res) {
+                    if (res && res._gasError) reject(new Error(res._gasError));
+                    else resolve(res);
+                })
+                .catch(function(err) { reject(err); });
             });
         }
 
@@ -680,7 +667,7 @@
 
         window.logout = function() {
             if (Auth.getToken()) {
-                gasRun('destroySession', Auth.getToken()).catch(function(e){});
+                gasRun('destroySession', Auth.getToken()).catch(function(e){ console.error('Logout error:', e); });
             }
             Auth.clear();
             appData = { users: [], files: [], nilai: {}, mhsList: [], userInfo: {} };
