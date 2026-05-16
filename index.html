@@ -437,6 +437,12 @@
 
     <!-- Custom Application Logic -->
     <script>
+    // --- SETUP GITHUB PAGES ---
+    // Nanti ganti teks di bawah dengan URL WebApp GAS Anda setelah di-deploy
+    const GAS_WEBAPP_URL = 'https://script.google.com/a/macros/fkip.unsika.ac.id/s/AKfycbzz9bM4C_GQPY1PAYne173Vvmwm6cCS4L5ggER-rqpsqRCLYccf7HrWV4h7SYFwk-oN/exec';
+    window.google = window.google || {}; // Mematikan mode simulasi lokal
+    // --------------------------
+
     (function() {
         'use strict';
 
@@ -472,20 +478,28 @@
             return div.innerHTML;
         }
 
-        const API_URL = 'https://script.google.com/a/macros/fkip.unsika.ac.id/s/AKfycbzz9bM4C_GQPY1PAYne173Vvmwm6cCS4L5ggER-rqpsqRCLYccf7HrWV4h7SYFwk-oN/exec';
-        window.google = { script: { run: {} } }; // Bypass mode simulasi otomatis
-
         function gasRun(funcName) {
             var args = Array.prototype.slice.call(arguments, 1);
-            return fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ func: funcName, args: args })
-            })
-            .then(function(response) { return response.json(); })
-            .then(function(data) {
-                if (data && data._gasError) throw new Error(data._gasError);
-                return data;
+            return new Promise(function(resolve, reject) {
+                if (window.google && google.script && google.script.run) {
+                    // Mode native Apps Script
+                    var runner = google.script.run
+                        .withSuccessHandler(function(res) { resolve(res); })
+                        .withFailureHandler(reject);
+                    runner[funcName].apply(runner, args);
+                } else {
+                    // Mode Github Pages (Fetch API)
+                    fetch(GAS_WEBAPP_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({ func: funcName, args: args })
+                    })
+                    .then(function(response) { return response.json(); })
+                    .then(function(data) {
+                        if (data && data._gasError) reject(new Error(data._gasError));
+                        else resolve(data);
+                    })
+                    .catch(function(err) { reject(err); });
+                }
             });
         }
 
@@ -660,7 +674,7 @@
 
         window.logout = function() {
             if (Auth.getToken()) {
-                gasRun('destroySession', Auth.getToken());
+                gasRun('destroySession', Auth.getToken()).catch(function(e){});
             }
             Auth.clear();
             appData = { users: [], files: [], nilai: {}, mhsList: [], userInfo: {} };
