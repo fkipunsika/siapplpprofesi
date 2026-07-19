@@ -55,9 +55,9 @@
                 <div class="alert mb-4" style="background-color: #eef8ff; border: none; border-radius: 8px;">
                     <p class="mb-2 fw-semibold" style="color: #0d6efd; font-size: 0.9rem;"><i class="fa-solid fa-circle-info me-2"></i>Panduan Login</p>
                     <ul class="list-unstyled mb-2" style="font-size: 0.85rem; color: #495057;">
-                        <li class="mb-1">👨‍🏫 <strong>DPL:</strong> Username menggunakan NIP/NIS</li>
-                        <li class="mb-1">👩‍🏫 <strong>Mentor:</strong> Username menggunakan NIK</li>
-                        <li class="mb-1">🎓 <strong>Mahasiswa:</strong> Username menggunakan NIM</li>
+                       <li class="mb-1">👨‍🏫 <strong>DPL:</strong> Username menggunakan NIP/NIS</li>
+                        <li class="mb-1 d-flex align-items-center gap-2 flex-wrap">👩‍🏫 <strong>Mentor:</strong> <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 fw-semibold" onclick="new bootstrap.Modal(document.getElementById('modalGuruPamong')).show()"><i class="fa-solid fa-list me-1"></i>Klik untuk Lihat Username Mentor</button></li>
+                        <li class="mb-1 mt-1">🎓 <strong>Mahasiswa:</strong> Username menggunakan NIM</li>
                     </ul>
                     <hr style="border-color: #bcd4e6; margin: 0.5rem 0;">
                     <p class="mb-0 text-danger fw-semibold" style="font-size: 0.85rem;"><i class="fa-solid fa-key me-2"></i>Password default: 123456</p>
@@ -329,6 +329,39 @@
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
                     <button type="button" class="btn btn-outline-primary px-4 fw-bold" onclick="handleNilaiSubmit(true)"><i class="fa-solid fa-floppy-disk me-1"></i> Simpan Draft</button>
                     <button type="button" class="btn btn-success px-4 fw-bold" onclick="handleNilaiSubmit(false)"><i class="fa-solid fa-check-double me-1"></i> Simpan Final</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<!-- MODAL: Data Username Mentor (Guru Pamong) -->
+    <div class="modal fade" id="modalGuruPamong" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title fw-bold"><i class="fa-solid fa-users me-2"></i>Daftar Username Mentor</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4 bg-light">
+                    <div class="mb-3">
+                        <input type="text" id="searchPamong" class="form-control form-control-lg shadow-sm" placeholder="🔍 Cari nama institusi atau username..." onkeyup="filterPamong()">
+                    </div>
+                    <div class="card shadow-sm border-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle m-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="ps-4">Institusi</th>
+                                        <th>Username</th>
+                                        <th class="pe-4">Password Default</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pamongTableBody">
+                                    <!-- Data rendered via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1335,6 +1368,42 @@ function renderDplReport() {
                 }
             });
         };
+
+        // --- FITUR MENTOR (GURU PAMONG) DATA ---
+        var pamongData = [{"Institusi":"Badan Perencanaan Pembangunan Riset Dan Inovasi Daerah","username":"baperida","password default":123456},{"Institusi":"Dinas Pendidikan dan Kebudayaan Kabupaten Karawang","username":"disdik","password default":123456},{"Institusi":"Dinas Tenaga Kerja dan Transmigrasi","username":"disnaker","password default":123456},{"Institusi":"Dinas Arsip dan Perpustakaan","username":"arsip","password default":123456},{"Institusi":"Dinas Koperasi dan Usaha Kecil Menengah","username":"dinkop","password default":123456},{"Institusi":"Dinas Lingkungan Hidup dan Kebersihan","username":"dlhk","password default":123456},{"Institusi":"Dinas Kependudukan dan Pencatatan Sipil","username":"disdukcapil","password default":123456},{"Institusi":"SPNF SKB Kabupaten Karawang","username":"skbkrw","password default":123456},{"Institusi":"Dinas Parawisata, Pemuda dan Olahraga","username":"dispora","password default":123456}];
+
+        function renderPamongTable(data) {
+            var tbody = document.getElementById('pamongTableBody');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            if(data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" class="text-center text-muted py-4"><i class="fa-solid fa-folder-open fa-2x mb-2 d-block opacity-50"></i>Data tidak ditemukan</td></tr>';
+                return;
+            }
+            var html = '';
+            data.forEach(function(item) {
+                html += '<tr>' +
+                        '<td class="ps-4 fw-semibold text-primary">' + escapeHTML(item["Institusi"]) + '</td>' +
+                        '<td class="fw-bold"><span class="badge bg-light text-dark border user-select-all" style="font-size: 0.9rem;">' + escapeHTML(item["username"]) + '</span></td>' +
+                        '<td class="pe-4 fw-bold text-danger">' + escapeHTML(item["password default"]) + '</td>' +
+                        '</tr>';
+            });
+            tbody.innerHTML = html;
+        }
+
+        window.filterPamong = function() {
+            var q = document.getElementById('searchPamong').value.toLowerCase();
+            var filtered = pamongData.filter(function(item) {
+                return String(item["Institusi"]).toLowerCase().includes(q) || 
+                       String(item["username"]).toLowerCase().includes(q);
+            });
+            renderPamongTable(filtered);
+        };
+
+        // Render tabel pamong segera setelah DOM Load
+        document.addEventListener('DOMContentLoaded', function() {
+            renderPamongTable(pamongData);
+        });
 
     })();
     </script>
